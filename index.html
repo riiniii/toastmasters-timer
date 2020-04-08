@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Toastmasters Timer</title>
+  </head>
+  <style>
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      height: 100%;
+      margin: 0px;
+    }
+    #block {
+      background-color: white;
+    }
+    #timerBg {
+      height: 100%;
+    }
+    #time {
+      text-align: center;
+      font-size: 20rem;
+      position: relative;
+      top: 50%;
+      transform: translateY(calc(-50% - 10px));
+    }
+    #actionButtons {
+      text-align: center;
+      padding-top: 10px;
+    }
+  </style>
+  <script>
+    let timerBgElement = document.getElementById("timerBg");
+    let time = document.getElementById("time");
+
+    const beepSound = new Audio("Electronic_Chime.mp3");
+    const timeChange = {
+      green: "green",
+      yellow: "yellow",
+      red: "red",
+      clear: "white",
+    };
+    const SPEECH_TYPE_MAP = {
+      "table-topics": [60, 120, 150],
+      "prepared-speeches": [300, 360, 420],
+      "long-speech": [600, 1500, 3000],
+    };
+    // updated
+    let timer; // setInterval timer
+    let timeElapsed = 0; // ms
+    let selectedSpeechType = "table-topics";
+
+    let [green, yellow, red] = SPEECH_TYPE_MAP[selectedSpeechType];
+
+    function onStart() {
+      if (!timer) {
+        timer = setInterval(tick, 1000);
+      }
+    }
+    function getTime() {
+      let minutes = Math.floor(timeElapsed / 60);
+      let seconds = timeElapsed - 60 * minutes;
+
+      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+        2,
+        "0"
+      )}`;
+    }
+    function tick() {
+      if (!time) {
+        time = document.getElementById("time");
+      }
+
+      timeElapsed++;
+      time.innerHTML = getTime();
+
+      // update bg color if necessary
+      if (timeElapsed === red) {
+        setBgColor("red");
+        beep();
+      } else if (timeElapsed === yellow) {
+        setBgColor("yellow");
+        beep();
+      } else if (timeElapsed === green) {
+        setBgColor("green");
+        beep();
+      }
+    }
+
+    // on beep, make some noise!
+    function beep() {
+      beepSound.play();
+    }
+    function onStop() {
+      // reset timer
+      clearInterval(timer);
+      timer = undefined;
+      //   clear bg and content of page
+      setBgColor("clear");
+      time.innerHTML = "0s";
+      //   reset time count
+      timeElapsed = 0;
+    }
+
+    function setBgColor(color) {
+      if (!timerBgElement) {
+        timerBgElement = document.getElementById("timerBg");
+      }
+      timerBgElement.style.backgroundColor = timeChange[color];
+    }
+    function onSelectSpeechType(event) {
+      // stop our current time
+      onStop();
+      //   get selected value
+      var e = document.getElementById("speechType");
+      selectedSpeechType = e.options[e.selectedIndex].value;
+      //   update timer
+      [green, yellow, red] = SPEECH_TYPE_MAP[selectedSpeechType];
+    }
+  </script>
+  <body>
+    <div id="timerBg">
+      <div id="actionButtons">
+        <button onclick="onStart()">Start</button>
+        <button onclick="onStop()">Stop</button>
+        <label for="speechType">Choose a speech type</label>
+        <select id="speechType" onchange="onSelectSpeechType()">
+          <option value="table-topics" selected>1-2min</option>
+          <option value="prepared-speeches">5-7min</option>
+          <option value="long-speech">10-20min</option>
+          <option value="custom">...</option>
+        </select>
+      </div>
+
+      <div id="time">
+        00:00
+      </div>
+    </div>
+  </body>
+</html>
